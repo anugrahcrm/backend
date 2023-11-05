@@ -26,14 +26,25 @@ const sendEmail = async (to, subject, html) => {
         pass: process.env.GMAIL_PASS,
       },
     });
-
-    // Define the email options
-    const mailOptions = {
-      from: "anugrah POS",
-      to: to?.join(""),
-      subject,
-      html,
-    };
+    let mailOptions;
+    // Check if 'to' is an array
+    if (Array.isArray(to)) {
+      // Define the email options with 'to' as a string (comma-separated if multiple elements)
+      mailOptions = {
+        from: "anugrah POS",
+        to: to.length === 1 ? to[0] : to.join(","),
+        subject,
+        html,
+      };
+    } else {
+      // 'to' is not an array, so use it as is
+      mailOptions = {
+        from: "anugrah POS",
+        to,
+        subject,
+        html,
+      };
+    }
 
     // Send the email
     const info = await transporter.sendMail(mailOptions);

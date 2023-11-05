@@ -112,7 +112,7 @@ export const createProcess = asyncHandler(async (req, res) => {
       adminEmails.push(element.email);
     });
     const adminEmailBody = `Jewellery Order Process started for customer ${customerName}.\n\nWith Invoice no. ${invoice}`;
-    const adminEmailSubject = "New Bar Order";
+    const adminEmailSubject = "Process started";
 
     await sendEmail(adminEmails, adminEmailSubject, adminEmailBody);
   } else {

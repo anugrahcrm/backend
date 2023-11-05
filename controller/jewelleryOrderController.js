@@ -103,7 +103,9 @@ export const createJewelleryOrder = asyncHandler(async (req, res) => {
       message: "successfully created",
     });
     // sending email to admin
-    const adminEmailBody = `New order created for customer ${customerName}.\n\nWith Invoice no. ${invoiceNo}`;
+    const emailWeight = orders?.order[0]?.weight ?? 0
+    const emailPaymentType = orders?.order[0]?.paymentType ?? "cash"
+    const adminEmailBody = `New order created for customer ${customerName}.\n\nWith Invoice no. ${invoiceNo}, weight: ${emailWeight} and paymentType: ${emailPaymentType}`;
     const adminEmailSubject = "New Jewellery Order";
 
     try {
