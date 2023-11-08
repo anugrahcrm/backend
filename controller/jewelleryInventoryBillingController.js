@@ -163,7 +163,6 @@ export const getJewelleryInventoryBillingByCustomerId = asyncHandler(
 export const updateJewelleryInventoryBilling = asyncHandler(
   async (req, res) => {
     const inventory = await JewelleryInventoryBilling.findById(req.params.id);
-
     if (inventory) {
       inventory.name = req.body.name;
       inventory.rate = req.body.rate;
@@ -175,6 +174,7 @@ export const updateJewelleryInventoryBilling = asyncHandler(
       inventory.stonePrice = req.body.stonePrice;
       inventory.quantity = req.body.quantity;
       inventory.makingCharge = req.body.makingCharge;
+      inventory.vatAmount = req.body.vatAmount;
 
       await inventory.save();
 
