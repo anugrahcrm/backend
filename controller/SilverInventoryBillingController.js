@@ -165,6 +165,7 @@ export const updateSilverInventoryBilling = asyncHandler(async (req, res) => {
     inventory.discount = req.body.discount;
     inventory.quantity = req.body.quantity;
     inventory.makingCharge = req.body.makingCharge;
+    inventory.paymentType = req.body.paymentType;
 
     await inventory.save();
 

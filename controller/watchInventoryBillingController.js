@@ -180,6 +180,7 @@ export const updateWatchInventoryBilling = asyncHandler(async (req, res) => {
     inventory.vatApplied = req.body.vatApplied;
     inventory.discount = req.body.discount;
     inventory.quantity = req.body.quantity;
+    inventory.paymentType = req.body.paymentType;
 
     await inventory.save();
 
@@ -208,3 +209,18 @@ export const deleteWatchInventoryBilling = async (req, res) => {
 
   res.json(reply);
 };
+
+export const  updatePaymentType = async () =>  {
+  try {
+    // Update all documents that don't have the paymentType field already set
+    const result = await WatchInventoryBilling.updateMany(
+      { paymentType: { $exists: false } },
+      { $set: { paymentType: 'Cash' } }
+    );
+
+    // Log the number of documents updated
+    console.log(`${result.nModified} documents updated successfully.`);
+  } catch (error) {
+    console.error('Error updating documents:', error);
+  }
+}

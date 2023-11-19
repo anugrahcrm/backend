@@ -85,6 +85,10 @@ const BarBillingSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "BarOrder",
     },
+    paymentType: {
+      type: String,
+      default: "Cash"
+    },
   },
   {
     timestamps: true,

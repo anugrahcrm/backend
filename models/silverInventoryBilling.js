@@ -58,6 +58,10 @@ const SilverInventoryBilling = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    paymentType: {
+      type: String,
+      default: "Cash"
+    },
   },
   {
     timestamps: true,

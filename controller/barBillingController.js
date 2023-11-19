@@ -27,6 +27,7 @@ export const createBarBilling = asyncHandler(async (req, res) => {
     vatAmount,
     karat,
     barOrderId,
+    paymentType
   } = req.body;
 
   const created = await BarBilling.create({
@@ -51,6 +52,7 @@ export const createBarBilling = asyncHandler(async (req, res) => {
     vatAmount,
     karat,
     barOrderId,
+    paymentType
   });
   const barOrder = await BarOrder.findById(barOrderId);
 
@@ -88,6 +90,7 @@ export const createBarBilling = asyncHandler(async (req, res) => {
       vatAmount,
       karat,
       barOrderId,
+      paymentType
     });
 
     createOrUpdateLoyalty(customerId, "bar", total, itemQuantity);
@@ -183,6 +186,7 @@ export const updateBarBilling = asyncHandler(async (req, res) => {
     inventory.itemType = req.body.itemType;
     inventory.itemQuantity = req.body.itemQuantity;
     inventory.itemUnitPrice = req.body.itemUnitPrice;
+    inventory.paymentType = req.body.paymentType;
 
     await inventory.save();
 

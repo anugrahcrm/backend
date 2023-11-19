@@ -54,7 +54,7 @@ const uploadJewelleryExcel = (req, res) => {
 
       jsonDataWithPrice.push({
         ...data,
-        purchasePrice: purchasePrice.toFixed(4),
+        purchasePrice: purchasePrice.toFixed(3),
       });
     });
 

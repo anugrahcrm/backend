@@ -54,6 +54,10 @@ const WatchInventoryBilling = new mongoose.Schema(
       type: String,
       default: "",
     },
+    paymentType: {
+      type: String,
+      default: "Cash"
+    },
   },
   {
     timestamps: true,
