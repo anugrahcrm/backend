@@ -55,14 +55,14 @@ export const createOrUpdateLoyalty = expressAsyncHandler(
         await loyalty.save();
       } else {
         let points = 0;
-        if (amount >= 500 || amount <= 1000) {
+        if (amount >= 500 && amount <= 1000) {
           points = 10;
         }
-        if (amount >= 1000 || amount <= 3000) {
+        if (amount >= 1000 && amount <= 3000) {
           // adding prev 10 and 20
           points = 30;
         }
-        if (amount >= 3000 || amount <= 6000) {
+        if (amount >= 3000 && amount <= 6000) {
           // adding prev 30 and 30
           points = 60;
         }
