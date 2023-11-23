@@ -174,3 +174,15 @@ export const deleteJewelleryInventory = async (req, res) => {
 
   res.json(reply);
 };
+
+export const deleteMultipleInventory = asyncHandler(async (req, res) => {
+  const  ids  = req.body;
+
+  const result = await JewelleryInventory.deleteMany({ _id: { $in: [...ids] } });
+
+  if (result.deletedCount > 0) {
+    res.json({ message: `${result.deletedCount} inventory deleted successfully` });
+  } else {
+    res.status(404).json({ message: 'No inventory found with the provided IDs' });
+  }
+});

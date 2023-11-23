@@ -129,6 +129,18 @@ export const deleteWatch = async (req, res) => {
   res.json(reply);
 };
 
+export const deleteMultipleWatches = asyncHandler(async (req, res) => {
+  const  ids  = req.body;
+
+  const result = await Watch.deleteMany({ _id: { $in: [...ids] } });
+
+  if (result.deletedCount > 0) {
+    res.json({ message: `${result.deletedCount} Watch deleted successfully` });
+  } else {
+    res.status(404).json({ message: 'No Watch found with the provided IDs' });
+  }
+});
+
 export const getWatchReport = async (req, res) => {
   const { id } = req.params;
 

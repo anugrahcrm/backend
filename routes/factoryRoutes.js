@@ -2,6 +2,7 @@ import express from "express";
 import {
   createFactory,
   deleteFactory,
+  deleteMultipleFactory,
   getAllFactory,
   getFactoryById,
   getFactoryExcel,
@@ -14,6 +15,7 @@ const router = express.Router();
 router.use(protect);
 
 router.route("/").post(createFactory).get(getAllFactory);
+router.route("/deleteMany").post(deleteMultipleFactory);
 router
   .route("/:id")
   .get(getFactoryById)

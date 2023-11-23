@@ -144,6 +144,18 @@ export const deleteUser = asyncHandler(async (req, res) => {
   res.json(reply);
 });
 
+export const deleteMultipleUsers = asyncHandler(async (req, res) => {
+  const  ids  = req.body;
+
+  const result = await User.deleteMany({ _id: { $in: [...ids] } });
+
+  if (result.deletedCount > 0) {
+    res.json({ message: `${result.deletedCount} users deleted successfully` });
+  } else {
+    res.status(404).json({ message: 'No users found with the provided IDs' });
+  }
+});
+
 export const changePassword = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const user = await User.findById(id);

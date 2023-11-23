@@ -168,6 +168,18 @@ export const deleteCustomer = async (req, res) => {
   res.json(reply);
 };
 
+export const deleteMultipleCustomers = asyncHandler(async (req, res) => {
+  const  ids  = req.body;
+
+  const result = await Customer.deleteMany({ _id: { $in: [...ids] } });
+
+  if (result.deletedCount > 0) {
+    res.json({ message: `${result.deletedCount} customers deleted successfully` });
+  } else {
+    res.status(404).json({ message: 'No customers found with the provided IDs' });
+  }
+});
+
 //just to update these five fields
 export const updateCustomersForBuy = async () => {
   try {

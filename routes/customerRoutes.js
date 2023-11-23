@@ -2,6 +2,7 @@ import express from "express";
 import {
   createCustomer,
   deleteCustomer,
+  deleteMultipleCustomers,
   getAllCustomer,
   getBarBoughtCustomer,
   getCustomerById,
@@ -23,6 +24,7 @@ const router = express.Router();
 router.use(protect);
 
 router.route("/").post(createCustomer).get(getAllCustomer);
+router.route("/deleteMany").post(deleteMultipleCustomers);
 router
   .route("/:id")
   .get(getCustomerById)

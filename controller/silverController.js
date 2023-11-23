@@ -133,3 +133,15 @@ export const deleteSilver = async (req, res) => {
 
   res.json(reply);
 };
+
+export const deleteMultipleSilver = asyncHandler(async (req, res) => {
+  const  ids  = req.body;
+
+  const result = await Silver.deleteMany({ _id: { $in: [...ids] } });
+
+  if (result.deletedCount > 0) {
+    res.json({ message: `${result.deletedCount} Silver deleted successfully` });
+  } else {
+    res.status(404).json({ message: 'No Silver found with the provided IDs' });
+  }
+});

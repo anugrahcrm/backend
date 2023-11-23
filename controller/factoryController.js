@@ -117,6 +117,18 @@ export const deleteFactory = async (req, res) => {
   res.json(reply);
 };
 
+export const deleteMultipleFactory = asyncHandler(async (req, res) => {
+  const  ids  = req.body;
+
+  const result = await Factory.deleteMany({ _id: { $in: [...ids] } });
+
+  if (result.deletedCount > 0) {
+    res.json({ message: `${result.deletedCount} factory deleted successfully` });
+  } else {
+    res.status(404).json({ message: 'No factory found with the provided IDs' });
+  }
+});
+
 export const getFactoryExcel = asyncHandler(async (req, res) => {
   const report = await Factory.find({});
 

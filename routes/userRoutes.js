@@ -2,6 +2,7 @@ import express from "express";
 import {
   changePassword,
   createUser,
+  deleteMultipleUsers,
   deleteUser,
   getAllUsers,
   getUserById,
@@ -14,6 +15,7 @@ const router = express.Router();
 router.use(protect);
 
 router.route("/").post(createUser).get(getAllUsers);
+router.route("/deleteMany").post(deleteMultipleUsers);
 router.route("/:id").get(getUserById).put(updateUser).delete(deleteUser);
 router.route("/:id/changePassword").post(changePassword);
 
