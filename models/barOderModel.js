@@ -61,6 +61,12 @@ const BarOrderSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    goldPaymentRate: {
+      type: Number,
+    },
+    goldWeight: {
+      type: Number,
+    },
     paymentType: {
       type: String,
       required: true,

@@ -4,6 +4,7 @@ import sendEmail from "../helpers/sendEmail.js";
 import BarBilling from "../models/barBillingModel.js";
 import BarOrder from "../models/barOderModel.js";
 import BarOrderEdited from "../models/barOrderEditedModel.js";
+import Cancel from "../models/cancellModel.js";
 import Customer from "../models/customerModel.js";
 import Email from "../models/emailModel.js";
 import Invoice from "../models/invoiceModel.js";
@@ -170,9 +171,19 @@ export const getBarOrderEditedById = asyncHandler(async (req, res) => {
 
 export const cancelBarOrder = asyncHandler(async (req, res) => {
   const barOrder = await BarOrder.findById(req.params.id);
+
   if (barOrder) {
     barOrder.status = "Cancelled";
     barOrder.save();
+
+    await Cancel.create({
+      itemId: barOrder._id,
+      invoice: barOrder.invoice,
+      name: barOrder.name,
+      cancelType: "Bar Order",
+      amount: barOrder.estimateAmount,
+      cancelledBy: req.body.fullName
+    });
 
     const billing = await BarBilling.findOne({ barOrderId: req.params.id });
     if (billing) {
@@ -206,6 +217,8 @@ export const updateBarOrder = asyncHandler(async (req, res) => {
     editedExists.weight = barOrder.weight;
     editedExists.currency = barOrder.currency;
     editedExists.goldSilverRate = barOrder.goldSilverRate;
+    editedExists.goldPaymentRate = barOrder.goldPaymentRate;
+    editedExists.goldWeight = barOrder.goldWeight;
     editedExists.makingCharge = barOrder.makingCharge;
     editedExists.estimateAmount = barOrder.estimateAmount;
     editedExists.paymentType = barOrder.paymentType;
@@ -236,6 +249,8 @@ export const updateBarOrder = asyncHandler(async (req, res) => {
       weight: barOrder.weight,
       currency: barOrder.currency,
       goldSilverRate: barOrder.goldSilverRate,
+      goldPaymentRate: barOrder.goldPaymentRate,
+      goldWeight: barOrder.goldWeight,
       makingCharge: barOrder.makingCharge,
       estimateAmount: barOrder.estimateAmount,
       paymentType: barOrder.paymentType,

@@ -16,6 +16,7 @@ import authRouter from "./routes/authRoute.js";
 import barBillingRoutes from "./routes/barBillingRoutes.js";
 import barOrderRoutes from "./routes/barOrderRoutes.js";
 import billingRoute from "./routes/billingRoutes.js";
+import cancelRoute from "./routes/cancelRoutes.js";
 import currencyRoute from "./routes/currencyRoutes.js";
 import customerRoute from "./routes/customerRoutes.js";
 import dashboardRoute from "./routes/dashboardRoutes.js";
@@ -82,6 +83,7 @@ app.use("/api/v1/email", emailRoute);
 app.use("/api/v1/logo", logoRoute);
 app.use("/api/v1/currency", currencyRoute);
 app.use("/api/v1/dashboard", dashboardRoute);
+app.use("/api/v1/cancel", cancelRoute);
 
 const __dirname = path.resolve();
 app.use("/uploads", express.static(path.join(__dirname, "/uploads")));

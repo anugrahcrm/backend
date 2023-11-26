@@ -2,6 +2,7 @@ import asyncHandler from "express-async-handler";
 import { generateInvoice } from "../helpers/generateInvoice.js";
 import sendEmail from "../helpers/sendEmail.js";
 import Billing from "../models/billingModel.js";
+import Cancel from "../models/cancellModel.js";
 import Customer from "../models/customerModel.js";
 import Email from "../models/emailModel.js";
 import Invoice from "../models/invoiceModel.js";
@@ -178,9 +179,20 @@ export const getJewelleryOrderEditedById = asyncHandler(async (req, res) => {
 
 export const cancelJewelleryOrder = asyncHandler(async (req, res) => {
   const jewelleryOrder = await JewelleryOrder.findById(req.params.id);
+  
   if (jewelleryOrder) {
     jewelleryOrder.status = "Cancelled";
     jewelleryOrder.save();
+
+    await Cancel.create({
+      itemId: jewelleryOrder._id,
+      invoice: jewelleryOrder.invoice,
+      name: jewelleryOrder.name,
+      cancelType: "Jewellery Order",
+      amount: jewelleryOrder.estimateAmount,
+      cancelledBy: req.body.fullName
+    });
+
 
     const orderInProcess = await Process.findOne({ orderId: req.params.id });
     if (orderInProcess) {

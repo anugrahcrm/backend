@@ -20,7 +20,7 @@ router
   .get(getJewelleryOrderById)
   .put(updateJewelleryOrder)
   .delete(deleteJewelleryOrder);
-router.route("/:id/cancel").get(cancelJewelleryOrder);
+router.route("/:id/cancel").post(cancelJewelleryOrder);
 router.route("/:id/edited").get(getJewelleryOrderEditedById);
 
 export default router;
