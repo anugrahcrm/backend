@@ -7,6 +7,7 @@ import {
   getAllBarOrders,
   getBarOrderById,
   getBarOrderEditedById,
+  getBarOrderExcel,
   updateBarOrder,
 } from "../controller/barOrderController.js";
 import { protect } from "../middleware/authMiddleware.js";
@@ -16,6 +17,7 @@ const router = express.Router();
 router.use(protect);
 
 router.route("/").post(createBarOrder).get(getAllBarOrders);
+router.route("/getBarOrderExcel").get(getBarOrderExcel);
 router
   .route("/:id")
   .get(getBarOrderById)

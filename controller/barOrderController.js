@@ -1,4 +1,5 @@
 import asyncHandler from "express-async-handler";
+import xlsx from "xlsx";
 import { generateInvoice } from "../helpers/generateInvoice.js";
 import sendEmail from "../helpers/sendEmail.js";
 import BarBilling from "../models/barBillingModel.js";
@@ -312,14 +313,16 @@ export const deleteBarOrder = async (req, res) => {
   const { id } = req.params;
 
   // Does the user exist to delete?
-  const user = await BarOrder.findById(id).exec();
+  const order = await BarOrder.findById(id).exec();
 
-  if (!user) {
+  if (!order) {
     res.status(400);
     throw new Error("bar not found");
   }
 
   const billing = BarBilling.find({ barOrderId: id });
+
+  
 
   if (billing.length > 0) {
     BarBilling.deleteMany({ barOrderId: id })
@@ -329,11 +332,66 @@ export const deleteBarOrder = async (req, res) => {
       .catch(function (error) {
         console.log(error); // Failure
       });
+
+    
   }
 
-  const result = await user.deleteOne();
+  const result = await order.deleteOne();
+
+  if(order.status === "Cancelled"){
+    const cancelledTrue = await Cancel.findOne({itemId:id})
+   if(cancelledTrue){
+    await cancelledTrue.deleteOne()
+   }
+  }
 
   const reply = `Username ${result.username} with ID ${result._id} deleted`;
 
   res.json(reply);
 };
+
+export const getBarOrderExcel = asyncHandler(async (req, res) => {
+  const barOrder = await BarOrder.find({})
+    .sort({ createdAt: -1 })
+    .lean();
+
+  if (barOrder.length > 0) {
+    const transformedData = barOrder.map((item) => ({
+      Invoice: item?.invoice,
+      ItemName: item?.name,
+      MetalType: item?.metalType,
+      Karat: item?.karat,
+      tola: item?.tola,
+      weight: item?.weight,
+      goldSilverRate: item?.goldSilverRate,
+      makingCharge: item?.makingCharge,
+      wastage: item?.wastage,
+      lengthInCm: item?.lengthInCm,
+      width: item?.width,
+      estimateAmount: item?.estimateAmount,
+      paymentType: item?.paymentType,
+      advancePayment: item?.paidAmount,
+      orderDate: item?.orderDate?.slice(0,10),
+      deadlineDate: item?.deadlineDate?.slice(0,10),
+      deliveryLocation: item?.deliveryLocation,
+      priority: item?.priority,
+      remarks: item?.remarks,
+      customerName: item?.customerName,
+      status: item?.status,
+      createdBy: item?.createdBy,
+    }));
+
+    const worksheet = xlsx.utils.json_to_sheet(transformedData);
+    const workbook = xlsx.utils.book_new();
+    xlsx.utils.book_append_sheet(workbook, worksheet, "JewelleryOrder");
+
+    const excelBuffer = xlsx.write(workbook, {
+      bookType: "xlsx",
+      type: "buffer",
+    });
+
+    res.status(200).send(excelBuffer);
+  } else {
+    throw new Error(`No data for report from ${from} to ${to}`);
+  }
+});
