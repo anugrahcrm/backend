@@ -201,6 +201,7 @@ export const updateBilling = asyncHandler(async (req, res) => {
     billing.grandTotal = req.body.grandTotal || billing.grandTotal;
     billing.vatApplied = req.body.vatApplied || billing.vatApplied;
     billing.stonePrice = req.body.stonePrice || billing.stonePrice;
+    billing.karat = req.body.karat || billing.karat;
 
     const updateBilling = await billing.save();
 
