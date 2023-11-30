@@ -1,4 +1,5 @@
 import asyncHandler from "express-async-handler";
+import xlsx from "xlsx";
 import Silver from "../models/silverModel.js";
 
 export const createSilver = asyncHandler(async (req, res) => {
@@ -143,5 +144,38 @@ export const deleteMultipleSilver = asyncHandler(async (req, res) => {
     res.json({ message: `${result.deletedCount} Silver deleted successfully` });
   } else {
     res.status(404).json({ message: 'No Silver found with the provided IDs' });
+  }
+});
+
+export const getSilverExcel = asyncHandler(async (req, res) => {
+  const silver = await Silver.find({})
+    .sort({ createdAt: -1 })
+    .lean();
+
+  if (silver.length > 0) {
+    const transformedData = silver.map((item) => ({
+      itemCode: item?.itemCode,
+      name:  item?.name,
+      currency:  item?.currency,
+      weight:  item?.weight,
+      makingPrice:  item?.makingPrice,
+      purchasePrice:  item?.purchasePrice,
+      quantity:  item?.quantity,
+      manufacturer:  item?.manufacturer,
+      remarks:  item?.remarks,
+    }));
+
+    const worksheet = xlsx.utils.json_to_sheet(transformedData);
+    const workbook = xlsx.utils.book_new();
+    xlsx.utils.book_append_sheet(workbook, worksheet, "silver");
+
+    const excelBuffer = xlsx.write(workbook, {
+      bookType: "xlsx",
+      type: "buffer",
+    });
+
+    res.status(200).send(excelBuffer);
+  } else {
+    throw new Error(`No data for report from ${from} to ${to}`);
   }
 });

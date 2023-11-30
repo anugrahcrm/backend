@@ -1,4 +1,5 @@
 import asyncHandler from "express-async-handler";
+import xlsx from "xlsx";
 import JewelleryInventory from "../models/jewelleryInventoryModel.js";
 
 export const createJewelleryInventory = asyncHandler(async (req, res) => {
@@ -184,5 +185,43 @@ export const deleteMultipleInventory = asyncHandler(async (req, res) => {
     res.json({ message: `${result.deletedCount} inventory deleted successfully` });
   } else {
     res.status(404).json({ message: 'No inventory found with the provided IDs' });
+  }
+});
+
+export const getJewelleryInventoryExcel = asyncHandler(async (req, res) => {
+  const jewelleryInventory = await JewelleryInventory.find({})
+    .sort({ createdAt: -1 })
+    .lean();
+
+  if (jewelleryInventory.length > 0) {
+    const transformedData = jewelleryInventory.map((item) => ({
+      code: item?.code,
+      name: item?.name,
+      weight: item?.weight,
+      karat: item?.karat,
+      jartiWaste: item?.jartiWaste,
+      jartiWeight: item?.jartiWeight,
+      rate: item?.rate,
+      stonePrice: item?.stonePrice,
+      purchasePrice: item?.purchasePrice,
+      quantity: item?.quantity,
+      manufacturer :item?.manufacturer,
+      makingCharge: item?.makingCharge,
+      remarks : item?.remarks,
+      createdBy: item?.createdBy?.name,
+    }));
+
+    const worksheet = xlsx.utils.json_to_sheet(transformedData);
+    const workbook = xlsx.utils.book_new();
+    xlsx.utils.book_append_sheet(workbook, worksheet, "jewelleryInventory");
+
+    const excelBuffer = xlsx.write(workbook, {
+      bookType: "xlsx",
+      type: "buffer",
+    });
+
+    res.status(200).send(excelBuffer);
+  } else {
+    throw new Error(`No data for report from ${from} to ${to}`);
   }
 });

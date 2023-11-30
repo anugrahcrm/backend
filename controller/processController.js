@@ -1,4 +1,5 @@
 import asyncHandler from "express-async-handler";
+import xlsx from "xlsx";
 import sendEmail from "../helpers/sendEmail.js";
 import Email from "../models/emailModel.js";
 import JewelleryOrder from "../models/jewelleryOrderModel.js";
@@ -181,5 +182,50 @@ export const updateprocess = asyncHandler(async (req, res) => {
   } else {
     res.status(401);
     throw new Error("process not found");
+  }
+});
+
+export const getProcessExcel = asyncHandler(async (req, res) => {
+  const process = await Process.find({})
+    .sort({ createdAt: -1 })
+    .lean();
+
+  if (process.length > 0) {
+    const transformedData = process.map((item) => ({
+      invoice: item?.invoice,
+      createdAt: item?.createdAt?.slice(0,10),
+      deadlineDate: item?.deadlineDate?.slice(0,10),
+      stoneShop: item?.stoneShop,
+      stonePrice: item?.stonePrice,
+      customerName: item?.customerName,
+      factoryName: item?.factoryName,
+      name: item?.name,
+      tola: item?.tola,
+      weight: item?.weight,
+      stoneType: item?.stoneType,
+      goldSilverRate: item?.goldSilverRate,
+      makingCharge: item?.makingCharge,
+      wastage: item?.wastage,
+      total: item?.estimateAmount,
+      paymentType: item?.paymentType,
+      advencePayment: item?.paidAmount,
+      checkDetails: item?.checkDetails,
+      remainingAmount: item?.remainingAmount,
+      priority: item?.priority,
+      remarks: item?.remarks,
+    }));
+
+    const worksheet = xlsx.utils.json_to_sheet(transformedData);
+    const workbook = xlsx.utils.book_new();
+    xlsx.utils.book_append_sheet(workbook, worksheet, "process");
+
+    const excelBuffer = xlsx.write(workbook, {
+      bookType: "xlsx",
+      type: "buffer",
+    });
+
+    res.status(200).send(excelBuffer);
+  } else {
+    throw new Error(`No data for report from ${from} to ${to}`);
   }
 });

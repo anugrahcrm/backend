@@ -1,4 +1,5 @@
 import asyncHandler from "express-async-handler";
+import xlsx from "xlsx";
 import Watch from "../models/watchModel.js";
 
 export const createWatch = asyncHandler(async (req, res) => {
@@ -157,3 +158,35 @@ export const getWatchReport = async (req, res) => {
 
   res.json(reply);
 };
+
+export const getWatchExcel = asyncHandler(async (req, res) => {
+  const watch = await Watch.find({})
+    .sort({ createdAt: -1 })
+    .lean();
+
+  if (watch.length > 0) {
+    const transformedData = watch.map((item) => ({
+    modelNo: item?.modelNo,
+    name: item?.name,
+    currency: item?.currency,
+    price: item?.price,
+    quantity: item?.quantity,
+    manufacturer: item?.manufacturer,
+    remarks: item?.remarks,
+    color: item?.color,
+    }));
+
+    const worksheet = xlsx.utils.json_to_sheet(transformedData);
+    const workbook = xlsx.utils.book_new();
+    xlsx.utils.book_append_sheet(workbook, worksheet, "watch");
+
+    const excelBuffer = xlsx.write(workbook, {
+      bookType: "xlsx",
+      type: "buffer",
+    });
+
+    res.status(200).send(excelBuffer);
+  } else {
+    throw new Error(`No data for report from ${from} to ${to}`);
+  }
+});
