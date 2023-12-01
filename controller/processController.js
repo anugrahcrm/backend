@@ -186,15 +186,18 @@ export const updateprocess = asyncHandler(async (req, res) => {
 });
 
 export const getProcessExcel = asyncHandler(async (req, res) => {
-  const process = await Process.find({})
+
+  const {factory} = req.query
+
+  const process = await Process.find({factoryName: factory})
     .sort({ createdAt: -1 })
     .lean();
 
   if (process.length > 0) {
     const transformedData = process.map((item) => ({
       invoice: item?.invoice,
-      createdAt: item?.createdAt?.slice(0,10),
-      deadlineDate: item?.deadlineDate?.slice(0,10),
+      createdAt: item?.createdAt,
+      deadlineDate: item?.deadlineDate,
       stoneShop: item?.stoneShop,
       stonePrice: item?.stonePrice,
       customerName: item?.customerName,
@@ -226,6 +229,6 @@ export const getProcessExcel = asyncHandler(async (req, res) => {
 
     res.status(200).send(excelBuffer);
   } else {
-    throw new Error(`No data for report from ${from} to ${to}`);
+    throw new Error(`No data for report`);
   }
 });

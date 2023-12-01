@@ -351,9 +351,13 @@ export const deleteBarOrder = async (req, res) => {
 };
 
 export const getBarOrderExcel = asyncHandler(async (req, res) => {
-  const barOrder = await BarOrder.find({})
-    .sort({ createdAt: -1 })
-    .lean();
+
+  const { from, to, status } = req.query;
+
+  const barOrder = await BarOrder.find({
+    status: status,
+    createdAt: { $gte: from, $lte: to },
+  }).exec();
 
   if (barOrder.length > 0) {
     const transformedData = barOrder.map((item) => ({

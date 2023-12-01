@@ -359,9 +359,13 @@ export const deleteJewelleryOrder = async (req, res) => {
 
 
 export const getJewelleryOrderExcel = asyncHandler(async (req, res) => {
-  const jewelleryOrder = await JewelleryOrder.find({})
-    .sort({ createdAt: -1 })
-    .lean();
+
+  const { from, to, status } = req.query;
+
+  const jewelleryOrder = await JewelleryOrder.find({
+    status: status,
+    orderDate: { $gte: from, $lte: to },
+  }).exec();
 
   if (jewelleryOrder.length > 0) {
     const transformedData = jewelleryOrder.map((item) => ({
