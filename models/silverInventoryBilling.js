@@ -26,6 +26,14 @@ const SilverInventoryBilling = new mongoose.Schema(
       type: String,
       default: "",
     },
+    rate: {
+      type: Number,
+      required: true,
+    },
+    jartiWaste: {
+      type: Number,
+      default: 0,
+    },
     sellingPrice: {
       type: Number,
       required: true,
