@@ -24,6 +24,13 @@ const CancellSchema = new mongoose.Schema(
      type: String,
      required: true
     },
+    isDeleted: {
+      type: Boolean,
+      default: false
+    },
+    deletedDate: {
+      type: Date
+    }
   },
   {
     timestamps: true,

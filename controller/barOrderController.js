@@ -9,7 +9,9 @@ import Cancel from "../models/cancellModel.js";
 import Customer from "../models/customerModel.js";
 import Email from "../models/emailModel.js";
 import Invoice from "../models/invoiceModel.js";
+import Trash from "../models/trashModel.js";
 import User from "../models/userModel.js";
+
 
 export const createBarOrder = asyncHandler(async (req, res) => {
   const { customer, orders } = req.body;
@@ -142,7 +144,7 @@ export const createBarOrder = asyncHandler(async (req, res) => {
 });
 
 export const getAllBarOrders = asyncHandler(async (req, res) => {
-  const barOrder = await BarOrder.find({}).sort({ createdAt: -1 }).lean();
+  const barOrder = await BarOrder.find({isDeleted: false}).sort({ createdAt: -1 }).lean();
 
   if (barOrder) {
     res.json(barOrder);
@@ -175,7 +177,7 @@ export const cancelBarOrder = asyncHandler(async (req, res) => {
 
   if (barOrder) {
     barOrder.status = "Cancelled";
-    barOrder.save();
+    await barOrder.save();
 
     await Cancel.create({
       itemId: barOrder._id,
@@ -311,6 +313,7 @@ export const updateBarOrder = asyncHandler(async (req, res) => {
 
 export const deleteBarOrder = async (req, res) => {
   const { id } = req.params;
+  const userDetails = req.body
 
   // Does the user exist to delete?
   const order = await BarOrder.findById(id).exec();
@@ -320,32 +323,36 @@ export const deleteBarOrder = async (req, res) => {
     throw new Error("bar not found");
   }
 
-  const billing = BarBilling.find({ barOrderId: id });
+  const billing = BarBilling.findOne({ barOrderId: id }).exec();
 
   
 
-  if (billing.length > 0) {
-    BarBilling.deleteMany({ barOrderId: id })
-      .then(function () {
-        console.log("Data deleted"); // Success
-      })
-      .catch(function (error) {
-        console.log(error); // Failure
-      });
-
-    
+  if (billing) {
+    await BarBilling.updateOne({ barOrderId: id }, { isDeleted: true, deletedDate: new Date() });
   }
 
-  const result = await order.deleteOne();
+  order.isDeleted = true;
+  order.deletedDate = new Date()
+  const success = await order.save()
+
+  if(success){
+    await Trash.create({
+      user: userDetails.fullName,
+      deletedAt: new Date(),
+      heading: "Bar Order",
+      headingId: id,
+      name: order.name
+    })
+  }
 
   if(order.status === "Cancelled"){
-    const cancelledTrue = await Cancel.findOne({itemId:id})
+    const cancelledTrue = await Cancel.findOne({itemId:id}).exec()
    if(cancelledTrue){
-    await cancelledTrue.deleteOne()
+    await Cancel.updateOne({ itemId: id }, { isDeleted: true, deletedDate: new Date() });
    }
   }
 
-  const reply = `Username ${result.username} with ID ${result._id} deleted`;
+  const reply = `deleted`;
 
   res.json(reply);
 };
@@ -355,6 +362,7 @@ export const getBarOrderExcel = asyncHandler(async (req, res) => {
   const { from, to, status } = req.query;
 
   const barOrder = await BarOrder.find({
+    isDeleted: false,
     status: status,
     createdAt: { $gte: from, $lte: to },
   }).exec();

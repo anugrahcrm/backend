@@ -58,6 +58,13 @@ const WatchInventoryBilling = new mongoose.Schema(
       type: String,
       default: "Cash"
     },
+    isDeleted: {
+      type: Boolean,
+      default: false
+    },
+    deletedDate: {
+      type: Date
+    }
   },
   {
     timestamps: true,

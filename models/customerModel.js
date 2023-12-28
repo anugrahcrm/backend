@@ -58,6 +58,13 @@ const CustomerSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    isDeleted: {
+      type: Boolean,
+      default: false
+    },
+    deletedDate: {
+      type: Date
+    }
   },
   {
     timestamps: true,

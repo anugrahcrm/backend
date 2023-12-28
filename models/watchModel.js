@@ -39,6 +39,13 @@ const WatchSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    isDeleted: {
+      type: Boolean,
+      default: false
+    },
+    deletedDate: {
+      type: Date
+    }
   },
   {
     timestamps: true,

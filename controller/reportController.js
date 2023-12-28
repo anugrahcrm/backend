@@ -14,6 +14,7 @@ export const getJewelleryInventoryReport = asyncHandler(async (req, res) => {
       $gte: new Date(from),
       $lte: new Date(to),
     },
+    isDeleted: false
   });
 
   if (report) {
@@ -30,6 +31,7 @@ export const getJewelleryInventoryExcel = asyncHandler(async (req, res) => {
       $gte: new Date(from),
       $lte: new Date(to),
     },
+    isDeleted: false
   });
 
   if (report.length > 0) {
@@ -70,6 +72,7 @@ export const getWatchInventoryReport = asyncHandler(async (req, res) => {
       $gte: new Date(from),
       $lte: new Date(to),
     },
+    isDeleted: false
   });
 
   if (report) {
@@ -86,6 +89,7 @@ export const getWatchExcel = asyncHandler(async (req, res) => {
       $gte: new Date(from),
       $lte: new Date(to),
     },
+    isDeleted: false
   });
 
   if (report.length > 0) {
@@ -121,6 +125,7 @@ export const getSilverInventoryReport = asyncHandler(async (req, res) => {
       $gte: new Date(from),
       $lte: new Date(to),
     },
+    isDeleted: false
   });
 
   if (report) {
@@ -137,6 +142,7 @@ export const getSilverExcel = asyncHandler(async (req, res) => {
       $gte: new Date(from),
       $lte: new Date(to),
     },
+    isDeleted: false
   });
 
   if (report.length > 0) {
@@ -175,6 +181,7 @@ export const getJewelleryOrderInventoryReport = asyncHandler(
         $gte: new Date(from),
         $lte: new Date(to),
       },
+      isDeleted: false
     });
 
     if (report) {
@@ -192,6 +199,7 @@ export const getJewelleryOrderExcel = asyncHandler(async (req, res) => {
       $gte: new Date(from),
       $lte: new Date(to),
     },
+    isDeleted: false
   });
 
   let reportWithCustomer = [];
@@ -251,6 +259,7 @@ export const getBarOrderInventoryReport = asyncHandler(async (req, res) => {
       $gte: new Date(from),
       $lte: new Date(to),
     },
+    isDeleted: false
   });
 
   if (report) {
@@ -267,6 +276,7 @@ export const getBarOrderExcel = asyncHandler(async (req, res) => {
       $gte: new Date(from),
       $lte: new Date(to),
     },
+    isDeleted: false
   });
 
   let reportWithCustomer = [];

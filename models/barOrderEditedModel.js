@@ -109,6 +109,13 @@ const BarOrderEditedSchema = new mongoose.Schema({
       type: String,
     },
   },
+  isDeleted: {
+    type: Boolean,
+    default: false
+  },
+  deletedDate: {
+    type: Date
+  }
 });
 
 export default mongoose.model("BarOrderEdited", BarOrderEditedSchema);

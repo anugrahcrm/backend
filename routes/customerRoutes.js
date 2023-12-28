@@ -29,7 +29,9 @@ router
   .route("/:id")
   .get(getCustomerById)
   .put(updateCustomer)
-  .delete(deleteCustomer);
+  router
+  .route("/:id/deleteCustomer")
+  .post(deleteCustomer);
 router
   .route("/billing/getJewelleryBoughtCustomer")
   .get(getJewelleryBoughtCustomer);

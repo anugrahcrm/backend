@@ -123,7 +123,7 @@ export const createProcess = asyncHandler(async (req, res) => {
 });
 
 export const getAllProcess = asyncHandler(async (req, res) => {
-  const process = await Process.find({}).sort({ createdAt: -1 }).lean();
+  const process = await Process.find({isDeleted: false}).sort({ createdAt: -1 }).lean();
 
   if (process) {
     res.status(200).json(process);
@@ -189,7 +189,7 @@ export const getProcessExcel = asyncHandler(async (req, res) => {
 
   const {factory} = req.query
 
-  const process = await Process.find({factoryName: factory})
+  const process = await Process.find({factoryName: factory, isDeleted: false})
     .sort({ createdAt: -1 })
     .lean();
 

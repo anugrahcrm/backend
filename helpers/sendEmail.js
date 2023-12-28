@@ -31,7 +31,7 @@ const sendEmail = async (to, subject, html) => {
     if (Array.isArray(to)) {
       // Define the email options with 'to' as a string (comma-separated if multiple elements)
       mailOptions = {
-        from: "anugrah POS",
+        from: "POS",
         to: to.length === 1 ? to[0] : to.join(","),
         subject,
         html,
@@ -39,7 +39,7 @@ const sendEmail = async (to, subject, html) => {
     } else {
       // 'to' is not an array, so use it as is
       mailOptions = {
-        from: "anugrah POS",
+        from: "POS",
         to,
         subject,
         html,

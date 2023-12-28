@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import xlsx from "xlsx";
 import Factory from "../models/factoryModel.js";
+import Trash from "../models/trashModel.js";
 
 export const createFactory = asyncHandler(async (req, res) => {
   const { name, address, email, contactPerson, phone, landline } = req.body;
@@ -44,7 +45,7 @@ export const createFactory = asyncHandler(async (req, res) => {
 });
 
 export const getAllFactory = asyncHandler(async (req, res) => {
-  const factory = await Factory.find({ active: true })
+  const factory = await Factory.find({ isDeleted: false })
     .sort({ createdAt: -1 })
     .lean();
 
@@ -101,16 +102,30 @@ export const getFactoryList = asyncHandler(async (req, res) => {
 
 export const deleteFactory = async (req, res) => {
   const { id } = req.params;
+  const userDetails = req.body
 
   // Does the user exist to delete?
-  const factory = await Factory.findById(id).exec();
+  const factory = await Factory.findById(id);
 
   if (!factory) {
     res.status(400);
     throw new Error("factory not found");
   }
 
-  const result = await factory.deleteOne();
+  factory.isDeleted = true;
+  factory.deletedDate = new Date()
+
+  const success = await factory.save()
+
+  if(success){
+    await Trash.create({
+      user: userDetails.fullName,
+      deletedAt: new Date(),
+      heading: "Factory",
+      headingId: id,
+      name: factory.name
+    })
+  }
 
   const reply = `deleted`;
 
@@ -118,11 +133,30 @@ export const deleteFactory = async (req, res) => {
 };
 
 export const deleteMultipleFactory = asyncHandler(async (req, res) => {
-  const  ids  = req.body;
+  const  {ids, user}  = req.body;
+  const factoryIds = ids.map((item) => item.id);
 
-  const result = await Factory.deleteMany({ _id: { $in: [...ids] } });
+  const result = await Factory.updateMany(
+    { _id: { $in: [...factoryIds] } },
+    {
+      $set: {
+        isDeleted: true,
+        deletedDate: new Date(),
+      },
+    }
+  );
 
-  if (result.deletedCount > 0) {
+  if (result.matchedCount > 0) {
+    const trashRecords = ids.map(id => ({
+      user: user.fullName,
+      deletedAt: new Date(),
+      heading: "Factory",
+      headingId: id.id,
+      name: id.name, 
+    }));
+
+    await Trash.insertMany(trashRecords);
+    
     res.json({ message: `${result.deletedCount} factory deleted successfully` });
   } else {
     res.status(404).json({ message: 'No factory found with the provided IDs' });
@@ -130,7 +164,7 @@ export const deleteMultipleFactory = asyncHandler(async (req, res) => {
 });
 
 export const getFactoryExcel = asyncHandler(async (req, res) => {
-  const report = await Factory.find({});
+  const report = await Factory.find({isDeleted: false});
 
   // console.log(report);
 

@@ -32,6 +32,7 @@ import processRoute from "./routes/processRoutes.js";
 import reportRoute from "./routes/reportRoutes.js";
 import silverInventoryBillingRoute from "./routes/silverInventoryBillingRoutes.js";
 import silverRoute from "./routes/silverRoutes.js";
+import trashRoute from "./routes/trashRoutes.js";
 import uploadRoutes from "./routes/uploadRoute.js";
 import usersRoute from "./routes/userRoutes.js";
 import watchInventoryBillingRoute from "./routes/watchInventoryBillingRoutes.js";
@@ -84,6 +85,7 @@ app.use("/api/v1/logo", logoRoute);
 app.use("/api/v1/currency", currencyRoute);
 app.use("/api/v1/dashboard", dashboardRoute);
 app.use("/api/v1/cancel", cancelRoute);
+app.use("/api/v1/trash", trashRoute);
 
 const __dirname = path.resolve();
 app.use("/uploads", express.static(path.join(__dirname, "/uploads")));

@@ -20,7 +20,7 @@ router
   .route("/:id")
   .get(getFactoryById)
   .put(updateFactory)
-  .delete(deleteFactory);
+  router.route("/:id/deleteFactory").post(deleteFactory);
 router.route("/excel/getFactoryExcel").get(getFactoryExcel);
 
 export default router;

@@ -86,6 +86,13 @@ const BillingSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Factory",
     },
+    isDeleted: {
+      type: Boolean,
+      default: false
+    },
+    deletedDate: {
+      type: Date
+    }
   },
   {
     timestamps: true,

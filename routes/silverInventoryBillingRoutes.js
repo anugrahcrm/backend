@@ -19,7 +19,7 @@ router
   .route("/:id")
   .get(getSilvernventoryBillingById)
   .put(updateSilverInventoryBilling)
-  .delete(deleteSilverBilling);
+  .post(deleteSilverBilling);
 router.route("/:id/customer").get(getSilverInventoryBillingByCustomerId);
 
 export default router;

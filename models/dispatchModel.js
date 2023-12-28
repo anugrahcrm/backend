@@ -49,6 +49,13 @@ const DispatchSchema = new mongoose.Schema(
       ref: "JewelleryOrder",
       //will make bar order id in future for bar dispatch
     },
+    isDeleted: {
+      type: Boolean,
+      default: false
+    },
+    deletedDate: {
+      type: Date
+    }
   },
   {
     timestamps: true,

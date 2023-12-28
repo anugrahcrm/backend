@@ -12,10 +12,10 @@ import WatchInventoryBilling from "../models/watchInventoryBilling.js";
 import Watch from "../models/watchModel.js";
 
 export const getDashBoardCount = asyncHandler(async (req, res) => {
-  const jewelleryInventoryCount = await JewelleryInventory.countDocuments();
-  const silverCount = await Silver.countDocuments();
-  const watchCount = await Watch.countDocuments();
-  const customerCount = await Customer.countDocuments();
+  const jewelleryInventoryCount = await JewelleryInventory.countDocuments({ isDeleted: false });
+  const silverCount = await Silver.countDocuments({ isDeleted: false });
+  const watchCount = await Watch.countDocuments({ isDeleted: false });
+  const customerCount = await Customer.countDocuments({ isDeleted: false });
 
   const totalCounts = {
     JewelleryInventory: jewelleryInventoryCount,
@@ -29,19 +29,24 @@ export const getDashBoardCount = asyncHandler(async (req, res) => {
 
 export const getTotalSales = asyncHandler(async (req, res) => {
   const billingTotal = await Billing.aggregate([
+    { $match: { isDeleted: false } },
     { $group: { _id: null, total: { $sum: "$grandTotal" } } },
   ]);
   const barBillingTotal = await BarBilling.aggregate([
+    { $match: { isDeleted: false } },
     { $group: { _id: null, total: { $sum: "$total" } } },
   ]);
   const jewelleryInventoryBillingTotal =
     await JewelleryInventoryBilling.aggregate([
+      { $match: { isDeleted: false } },
       { $group: { _id: null, total: { $sum: "$totalPrice" } } },
     ]);
   const watchInventoryBillingTotal = await WatchInventoryBilling.aggregate([
+    { $match: { isDeleted: false } },
     { $group: { _id: null, total: { $sum: "$totalPrice" } } },
   ]);
   const silverInventoryBillingTotal = await SilverInventoryBilling.aggregate([
+    { $match: { isDeleted: false } },
     { $group: { _id: null, total: { $sum: "$totalPrice" } } },
   ]);
 
@@ -57,13 +62,15 @@ export const getTotalSales = asyncHandler(async (req, res) => {
 });
 
 export const getTasks = asyncHandler(async (req, res) => {
-  const jewelleryOrderTask = await JewelleryOrder.countDocuments();
+  const jewelleryOrderTask = await JewelleryOrder.countDocuments({isDeleted: false});
   const jewelleryOrderCompleted = await JewelleryOrder.countDocuments({
     status: "Transaction Completed",
+    isDeleted: false
   });
-  const barOrderTask = await BarOrder.countDocuments();
+  const barOrderTask = await BarOrder.countDocuments({isDeleted: false});
   const barOrderCompleted = await BarOrder.countDocuments({
     status: "Transaction Completed",
+    isDeleted: false
   });
 
   const tasks = {

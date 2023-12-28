@@ -22,8 +22,8 @@ router
   .route("/:id")
   .get(getBarOrderById)
   .put(updateBarOrder)
-  .delete(deleteBarOrder);
 router.route("/:id/cancel").post(cancelBarOrder);
 router.route("/:id/edited").get(getBarOrderEditedById);
+router.route("/:id/deleteOrder").post(deleteBarOrder);
 
 export default router;

@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import xlsx from "xlsx";
 import JewelleryInventory from "../models/jewelleryInventoryModel.js";
+import Trash from "../models/trashModel.js";
 
 export const createJewelleryInventory = asyncHandler(async (req, res) => {
   const {
@@ -83,7 +84,7 @@ export const createJewelleryInventory = asyncHandler(async (req, res) => {
 });
 
 export const getAllJewelleryInventory = asyncHandler(async (req, res) => {
-  const jewelleryInventory = await JewelleryInventory.find({})
+  const jewelleryInventory = await JewelleryInventory.find({isDeleted: false})
     .sort({ createdAt: -1 })
     .lean();
 
@@ -161,15 +162,29 @@ export const updateJewelleryInventory = asyncHandler(async (req, res) => {
 
 export const deleteJewelleryInventory = async (req, res) => {
   const { id } = req.params;
+  const userDetails = req.body
 
-  const user = await JewelleryInventory.findById(id).exec();
+  const inventory = await JewelleryInventory.findById(id).exec();
 
-  if (!user) {
+  if (!inventory) {
     res.status(400);
     throw new Error("jewellery not found");
   }
 
-  const result = await user.deleteOne();
+  inventory.isDeleted = true;
+  inventory.deletedDate = new Date()
+
+  const success = await inventory.save()
+
+  if(success){
+    await Trash.create({
+      user: userDetails.fullName,
+      deletedAt: new Date(),
+      heading: "Jewellery Inventory",
+      headingId: id,
+      name: inventory.name
+    })
+  }
 
   const reply = `deleted`;
 
@@ -177,11 +192,30 @@ export const deleteJewelleryInventory = async (req, res) => {
 };
 
 export const deleteMultipleInventory = asyncHandler(async (req, res) => {
-  const  ids  = req.body;
+  const  {ids, user}  = req.body;
 
-  const result = await JewelleryInventory.deleteMany({ _id: { $in: [...ids] } });
+  const userIds = ids.map((item) => item.id);
 
-  if (result.deletedCount > 0) {
+  const result = await JewelleryInventory.updateMany(
+    { _id: { $in: [...userIds] } },
+    {
+      $set: {
+        isDeleted: true,
+        deletedDate: new Date(),
+      },
+    }
+  );
+
+  if (result.matchedCount > 0) {
+    const trashRecords = ids.map(id => ({
+      user: user.fullName,
+      deletedAt: new Date(),
+      heading: "Jewellery Inventory",
+      headingId: id.id,
+      name: id.name, 
+    }));
+
+    await Trash.insertMany(trashRecords);
     res.json({ message: `${result.deletedCount} inventory deleted successfully` });
   } else {
     res.status(404).json({ message: 'No inventory found with the provided IDs' });

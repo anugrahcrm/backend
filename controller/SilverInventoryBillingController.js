@@ -7,6 +7,7 @@ import Email from "../models/emailModel.js";
 import Invoice from "../models/invoiceModel.js";
 import SilverInventoryBilling from "../models/silverInventoryBilling.js";
 import Silver from "../models/silverModel.js";
+import Trash from "../models/trashModel.js";
 import { createOrUpdateLoyalty } from "./loyaltyController.js";
 
 export const createSilverBilling = asyncHandler(async (req, res) => {
@@ -117,7 +118,7 @@ export const createSilverBilling = asyncHandler(async (req, res) => {
 });
 
 export const getAllSilverInventoryBilling = asyncHandler(async (req, res) => {
-  const inventory = await SilverInventoryBilling.find({})
+  const inventory = await SilverInventoryBilling.find({isDeleted: false})
     .sort({ createdAt: -1 })
     .lean();
 
@@ -142,6 +143,7 @@ export const getSilverInventoryBillingByCustomerId = asyncHandler(
   async (req, res) => {
     const inventory = await SilverInventoryBilling.find({
       customerId: req.params.id,
+      isDeleted: false
     })
       .sort({ createdAt: -1 })
       .lean();
@@ -182,6 +184,7 @@ export const updateSilverInventoryBilling = asyncHandler(async (req, res) => {
 
 export const deleteSilverBilling = async (req, res) => {
   const { id } = req.params;
+  const userDetails = req.body
 
   const inventory = await SilverInventoryBilling.findById(id).exec();
 
@@ -190,7 +193,20 @@ export const deleteSilverBilling = async (req, res) => {
     throw new Error("SilverInventoryBilling not found");
   }
 
-  const result = await inventory.deleteOne();
+  inventory.isDeleted = true;
+  inventory.deletedDate = new Date()
+
+  const success =  await inventory.save()
+
+  if(success){
+    await Trash.create({
+      user: userDetails.fullName,
+      deletedAt: new Date(),
+      heading: "SilverInventory Billing",
+      headingId: id,
+      name: inventory.name
+    })
+  }
 
   const reply = `deleted`;
 

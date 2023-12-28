@@ -1,5 +1,6 @@
 import asyncHandler from "express-async-handler";
 import xlsx from "xlsx";
+import Trash from "../models/trashModel.js";
 import Watch from "../models/watchModel.js";
 
 export const createWatch = asyncHandler(async (req, res) => {
@@ -60,7 +61,7 @@ export const createWatch = asyncHandler(async (req, res) => {
 });
 
 export const getAllWatch = asyncHandler(async (req, res) => {
-  const watch = await Watch.find({}).sort({ createdAt: -1 }).lean();
+  const watch = await Watch.find({isDeleted: false}).sort({ createdAt: -1 }).lean();
 
   if (watch) {
     res.status(200).json(watch);
@@ -115,15 +116,29 @@ export const updateWatch = asyncHandler(async (req, res) => {
 
 export const deleteWatch = async (req, res) => {
   const { id } = req.params;
+  const userDetails = req.body
 
-  const user = await Watch.findById(id).exec();
+  const watch = await Watch.findById(id);
 
-  if (!user) {
+  if (!watch) {
     res.status(400);
     throw new Error("watch not found");
   }
 
-  const result = await user.deleteOne();
+  watch.isDeleted = true;
+  watch.deletedDate = new Date()
+
+  const success = await watch.save()
+
+  if(success){
+    await Trash.create({
+      user: userDetails.fullName,
+      deletedAt: new Date(),
+      heading: "Watch",
+      headingId: id,
+      name: watch.name
+    })
+  }
 
   const reply = `deleted`;
 
@@ -131,11 +146,30 @@ export const deleteWatch = async (req, res) => {
 };
 
 export const deleteMultipleWatches = asyncHandler(async (req, res) => {
-  const  ids  = req.body;
+  const  {ids, user}  = req.body;
 
-  const result = await Watch.deleteMany({ _id: { $in: [...ids] } });
+  const userIds = ids.map((item) => item.id);
 
-  if (result.deletedCount > 0) {
+  const result = await Watch.updateMany(
+    { _id: { $in: [...userIds] } },
+    {
+      $set: {
+        isDeleted: true,
+        deletedDate: new Date(),
+      },
+    }
+  );
+
+  if (result.matchedCount > 0) {
+    const trashRecords = ids.map(id => ({
+      user: user.fullName,
+      deletedAt: new Date(),
+      heading: "Watch",
+      headingId: id.id,
+      name: id.name, 
+    }));
+
+    await Trash.insertMany(trashRecords);
     res.json({ message: `${result.deletedCount} Watch deleted successfully` });
   } else {
     res.status(404).json({ message: 'No Watch found with the provided IDs' });

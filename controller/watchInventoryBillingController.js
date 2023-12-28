@@ -5,6 +5,7 @@ import Customer from "../models/customerModel.js";
 import Email from "../models/emailModel.js";
 import Invoice from "../models/invoiceModel.js";
 import Loyalty from "../models/loyaltyModel.js";
+import Trash from "../models/trashModel.js";
 import WatchInventoryBilling from "../models/watchInventoryBilling.js";
 import Watch from "../models/watchModel.js";
 import { createOrUpdateLoyalty } from "./loyaltyController.js";
@@ -134,7 +135,7 @@ export const createWatchBilling = asyncHandler(async (req, res) => {
 });
 
 export const getAllWatchInventoryBilling = asyncHandler(async (req, res) => {
-  const inventory = await WatchInventoryBilling.find({})
+  const inventory = await WatchInventoryBilling.find({isDeleted: false})
     .sort({ createdAt: -1 })
     .lean();
 
@@ -158,6 +159,7 @@ export const getWatchInventoryBillingByCustomerId = asyncHandler(
   async (req, res) => {
     const inventory = await WatchInventoryBilling.find({
       customerId: req.params.id,
+      isDeleted: false
     })
       .sort({ createdAt: -1 })
       .lean();
@@ -195,15 +197,29 @@ export const updateWatchInventoryBilling = asyncHandler(async (req, res) => {
 
 export const deleteWatchInventoryBilling = async (req, res) => {
   const { id } = req.params;
+  const userDetails = req.body
 
-  const inventory = await WatchInventoryBilling.findById(id).exec();
+  const inventory = await WatchInventoryBilling.findById(id);
 
   if (!inventory) {
     res.status(400);
     throw new Error("WatchInventoryBilling not found");
   }
 
-  const result = await inventory.deleteOne();
+  inventory.isDeleted = true;
+  inventory.deletedDate = new Date()
+
+  const success = await inventory.save()
+
+  if(success){
+    await Trash.create({
+      user: userDetails.fullName,
+      deletedAt: new Date(),
+      heading: "WatchInventory Billing",
+      headingId: id,
+      name: inventory.name
+    })
+  }
 
   const reply = `deleted`;
 

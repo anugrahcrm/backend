@@ -130,8 +130,8 @@ export const createBilling = asyncHandler(async (req, res) => {
 });
 
 export const getAllBilling = asyncHandler(async (req, res) => {
-  const customer = await Customer.find({ orderedJewellery: true });
-  const billing = await Billing.find({}).sort({ createdAt: -1 }).lean();
+  const customer = await Customer.find({ orderedJewellery: true, isDeleted: false });
+  const billing = await Billing.find({isDeleted: false}).sort({ createdAt: -1 }).lean();
   const billingWithCustomerName = [];
 
   if (billing) {
@@ -157,6 +157,7 @@ export const getAllBilling = asyncHandler(async (req, res) => {
 
 export const getAllBillingByCustomer = asyncHandler(async (req, res) => {
   const customerIdBilling = await Billing.find({
+    isDeleted: false,
     customerId: req.params.customer,
   })
     .sort({ createdAt: -1 })

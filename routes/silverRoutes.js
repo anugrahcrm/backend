@@ -17,6 +17,7 @@ router.use(protect);
 router.route("/").post(createSilver).get(getAllSilver);
 router.route("/getSilverExcel").get(getSilverExcel);
 router.route("/deleteMany").post(deleteMultipleSilver);
-router.route("/:id").get(getSilverById).put(updateSilver).delete(deleteSilver);
+router.route("/:id").get(getSilverById).put(updateSilver);
+router.route("/:id/deleteSilver").post(deleteSilver);
 
 export default router;

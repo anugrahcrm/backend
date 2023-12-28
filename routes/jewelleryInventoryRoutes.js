@@ -21,6 +21,6 @@ router
   .route("/:id")
   .get(getAllJewelleryInventoryById)
   .put(updateJewelleryInventory)
-  .delete(deleteJewelleryInventory);
+  router.route("/:id/deleteJewelleryInventory").post(deleteJewelleryInventory);
 
 export default router;

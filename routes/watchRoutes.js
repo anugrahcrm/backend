@@ -17,6 +17,6 @@ router.use(protect);
 router.route("/").post(createWatch).get(getAllWatch);
 router.route("/getWatchrExcel").get(getWatchExcel);
 router.route("/deleteMany").post(deleteMultipleWatches);
-router.route("/:id").get(getWatchById).put(updateWatch).delete(deleteWatch);
-
+router.route("/:id").get(getWatchById).put(updateWatch);
+router.route("/:id/deleteWatch").post(deleteWatch);
 export default router;

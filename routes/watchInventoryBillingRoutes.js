@@ -19,7 +19,7 @@ router
   .route("/:id")
   .get(getWatchInventoryBillingById)
   .put(updateWatchInventoryBilling)
-  .delete(deleteWatchInventoryBilling);
+  .post(deleteWatchInventoryBilling);
 router.route("/:id/customer").get(getWatchInventoryBillingByCustomerId);
 
 export default router;

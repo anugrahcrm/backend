@@ -133,6 +133,13 @@ const JewelleryOrderSchema = new mongoose.Schema(
         type: String,
       },
     },
+    isDeleted: {
+      type: Boolean,
+      default: false
+    },
+    deletedDate: {
+      type: Date
+    }
   },
   {
     timestamps: true,

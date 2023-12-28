@@ -2,6 +2,7 @@ import asyncHandler from "express-async-handler";
 import xlsx from "xlsx";
 import membershipIdCreator from "../helpers/membershipIdCreator.js";
 import Customer from "../models/customerModel.js";
+import Trash from "../models/trashModel.js";
 
 export const createCustomer = asyncHandler(async (req, res) => {
   const {
@@ -74,7 +75,7 @@ export const createCustomer = asyncHandler(async (req, res) => {
 });
 
 export const getAllCustomer = asyncHandler(async (req, res) => {
-  const customers = await Customer.find({ active: true })
+  const customers = await Customer.find({ isDeleted: false })
     .sort({ createdAt: -1 })
     .lean();
 
@@ -135,7 +136,7 @@ export const updateCustomer = asyncHandler(async (req, res) => {
 });
 
 export const getCustomerList = asyncHandler(async (req, res) => {
-  const customers = await Customer.find({ active: true })
+  const customers = await Customer.find({ isDeleted: false })
     .select("fullName phone")
     .sort({ createdAt: -1 })
     .lean();
@@ -153,15 +154,29 @@ export const getCustomerList = asyncHandler(async (req, res) => {
 
 export const deleteCustomer = async (req, res) => {
   const { id } = req.params;
+  const userDetails = req.body
 
-  const user = await Customer.findById(id).exec();
+  const customer = await Customer.findById(id).exec();
 
-  if (!user) {
+  if (!customer) {
     res.status(400);
     throw new Error("customer not found");
   }
 
-  await user.deleteOne();
+  customer.isDeleted = true;
+  customer.deletedDate = new Date()
+
+  const success = await customer.save()
+
+  if(success){
+    await Trash.create({
+      user: userDetails.fullName,
+      deletedAt: new Date(),
+      heading: "Customer",
+      headingId: id,
+      name: customer.fullName
+    })
+  }
 
   const reply = `deleted`;
 
@@ -169,11 +184,31 @@ export const deleteCustomer = async (req, res) => {
 };
 
 export const deleteMultipleCustomers = asyncHandler(async (req, res) => {
-  const  ids  = req.body;
+  const  {ids, user}  = req.body;
 
-  const result = await Customer.deleteMany({ _id: { $in: [...ids] } });
+  const customerIds = ids.map((item) => item.id);
 
-  if (result.deletedCount > 0) {
+
+  const result = await Customer.updateMany(
+    { _id: { $in: [...customerIds] } },
+    {
+      $set: {
+        isDeleted: true,
+        deletedDate: new Date(),
+      },
+    }
+  );
+
+  if (result.matchedCount > 0) {
+    const trashRecords = ids.map(id => ({
+      user: user.fullName,
+      deletedAt: new Date(),
+      heading: "Customer",
+      headingId: id.id,
+      name: id.name, 
+    }));
+
+    await Trash.insertMany(trashRecords);
     res.json({ message: `${result.deletedCount} customers deleted successfully` });
   } else {
     res.status(404).json({ message: 'No customers found with the provided IDs' });
@@ -236,7 +271,7 @@ export const createMembership = async () => {
 };
 
 export const getJewelleryBoughtCustomer = asyncHandler(async (req, res) => {
-  const customers = await Customer.find({ boughtJewellery: true })
+  const customers = await Customer.find({ isDeleted: false, boughtJewellery: true })
     .sort({ createdAt: -1 })
     .lean();
 
@@ -253,7 +288,7 @@ export const getJewelleryBoughtCustomer = asyncHandler(async (req, res) => {
 });
 
 export const getSilverBoughtCustomer = asyncHandler(async (req, res) => {
-  const customers = await Customer.find({ boughtSilver: true })
+  const customers = await Customer.find({ isDeleted: false, boughtSilver: true })
     .sort({ createdAt: -1 })
     .lean();
 
@@ -270,7 +305,7 @@ export const getSilverBoughtCustomer = asyncHandler(async (req, res) => {
 });
 
 export const getWatchBoughtCustomer = asyncHandler(async (req, res) => {
-  const customers = await Customer.find({ boughtWatch: true })
+  const customers = await Customer.find({ isDeleted: false, boughtWatch: true })
     .sort({ createdAt: -1 })
     .lean();
 
@@ -287,7 +322,7 @@ export const getWatchBoughtCustomer = asyncHandler(async (req, res) => {
 });
 
 export const getBarBoughtCustomer = asyncHandler(async (req, res) => {
-  const customers = await Customer.find({ orderedBar: true })
+  const customers = await Customer.find({ isDeleted: false, orderedBar: true })
     .sort({ createdAt: -1 })
     .lean();
 
@@ -305,7 +340,7 @@ export const getBarBoughtCustomer = asyncHandler(async (req, res) => {
 
 export const getJewelleryOrderBoughtCustomer = asyncHandler(
   async (req, res) => {
-    const customers = await Customer.find({ orderedJewellery: true })
+    const customers = await Customer.find({ isDeleted: false, orderedJewellery: true })
       .sort({ createdAt: -1 })
       .lean();
 
@@ -323,7 +358,7 @@ export const getJewelleryOrderBoughtCustomer = asyncHandler(
 );
 
 export const getCustomerExcel = asyncHandler(async (req, res) => {
-  const report = await Customer.find({});
+  const report = await Customer.find({isDeleted: false});
 
   // console.log(report);
 

@@ -1,12 +1,12 @@
 import asyncHandler from "express-async-handler";
 import { generateInvoice } from "../helpers/generateInvoice.js";
-import membershipIdCreator from "../helpers/membershipIdCreator.js";
 import sendEmail from "../helpers/sendEmail.js";
 import Customer from "../models/customerModel.js";
 import Email from "../models/emailModel.js";
 import Invoice from "../models/invoiceModel.js";
 import JewelleryInventoryBilling from "../models/jewelleryInventoryBilling.js";
 import JewelleryInventory from "../models/jewelleryInventoryModel.js";
+import Trash from "../models/trashModel.js";
 import { createOrUpdateLoyalty } from "./loyaltyController.js";
 
 export const createJewelleryOrderBilling = asyncHandler(async (req, res) => {
@@ -120,7 +120,7 @@ export const createJewelleryOrderBilling = asyncHandler(async (req, res) => {
 
 export const getAllJewelleryInventoryBilling = asyncHandler(
   async (req, res) => {
-    const inventory = await JewelleryInventoryBilling.find({})
+    const inventory = await JewelleryInventoryBilling.find({isDeleted: false})
       .sort({ createdAt: -1 })
       .lean();
 
@@ -149,6 +149,7 @@ export const getJewelleryInventoryBillingByCustomerId = asyncHandler(
   async (req, res) => {
     const inventory = await JewelleryInventoryBilling.find({
       customerId: req.params.id,
+      isDeleted: false
     })
       .sort({ createdAt: -1 })
       .lean();
@@ -191,6 +192,7 @@ export const updateJewelleryInventoryBilling = asyncHandler(
 
 export const deleteJewelleryInventoryBilling = async (req, res) => {
   const { id } = req.params;
+  const userDetails = req.body
 
   const inventory = await JewelleryInventoryBilling.findById(id).exec();
 
@@ -199,7 +201,20 @@ export const deleteJewelleryInventoryBilling = async (req, res) => {
     throw new Error("JewelleryInventoryBilling not found");
   }
 
-  const result = await inventory.deleteOne();
+  inventory.isDeleted = true;
+  inventory.deletedDate = new Date()
+
+  const success = await inventory.save()
+
+  if(success){
+    await Trash.create({
+      user: userDetails.fullName,
+      deletedAt: new Date(),
+      heading: "JewelleryInventory Billing",
+      headingId: id,
+      name: inventory.name
+    })
+  }
 
   const reply = `deleted`;
 

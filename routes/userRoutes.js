@@ -16,7 +16,9 @@ router.use(protect);
 
 router.route("/").post(createUser).get(getAllUsers);
 router.route("/deleteMany").post(deleteMultipleUsers);
-router.route("/:id").get(getUserById).put(updateUser).delete(deleteUser);
+router.route("/:id").get(getUserById).put(updateUser);
+router.route("/:id/deleteUser").post(deleteUser);
 router.route("/:id/changePassword").post(changePassword);
+
 
 export default router;

@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
-import Dispatch from "../models/dispatchModel.js";
 import Billing from "../models/billingModel.js";
+import Dispatch from "../models/dispatchModel.js";
+import Trash from "../models/trashModel.js";
 
 export const createDispatch = asyncHandler(async (req, res) => {
   const { dispatch, billingDetails } = req.body;
@@ -94,7 +95,7 @@ export const createDispatch = asyncHandler(async (req, res) => {
 });
 
 export const getAllDispatch = asyncHandler(async (req, res) => {
-  const dispatch = await Dispatch.find({}).sort({ createdAt: -1 }).lean();
+  const dispatch = await Dispatch.find({isDeleted: false}).sort({ createdAt: -1 }).lean();
 
   if (dispatch) {
     res.status(200).json(dispatch);
@@ -139,6 +140,7 @@ export const updateDispatch = asyncHandler(async (req, res) => {
 
 export const deleteDispatch = async (req, res) => {
   const { id } = req.params;
+  const userDetails = req.body
 
   const user = await Dispatch.findById(id).exec();
 
@@ -147,7 +149,20 @@ export const deleteDispatch = async (req, res) => {
     throw new Error("Dispatch not found");
   }
 
-  const result = await user.deleteOne();
+  user.isDeleted = true;
+  user.deletedDate = new Date()
+
+  const success = await user.save()
+
+  if(success){
+    await Trash.create({
+      user: userDetails.fullName,
+      deletedAt: new Date(),
+      heading: "Dispatch",
+      headingId: id,
+      name: user.name
+    })
+  }
 
   const reply = `deleted`;
 

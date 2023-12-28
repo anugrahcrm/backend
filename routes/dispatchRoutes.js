@@ -17,6 +17,6 @@ router
   .route("/:id")
   .get(getDispatchById)
   .put(updateDispatch)
-  .delete(deleteDispatch);
+  .post(deleteDispatch);
 
 export default router;

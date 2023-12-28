@@ -111,8 +111,8 @@ export const createBarBilling = asyncHandler(async (req, res) => {
 });
 
 export const getAllBarBilling = asyncHandler(async (req, res) => {
-  const customer = await Customer.find({ orderedBar: true });
-  const billing = await BarBilling.find({}).sort({ createdAt: -1 }).lean();
+  const customer = await Customer.find({ orderedBar: true , isDeleted: false});
+  const billing = await BarBilling.find({isDeleted: false}).sort({ createdAt: -1 }).lean();
   const billingWithCustomerName = [];
 
   if (billing) {
@@ -148,6 +148,7 @@ export const getBarBillingById = asyncHandler(async (req, res) => {
 export const getBarBillingByCustomerId = asyncHandler(async (req, res) => {
   const customerIdBilling = await BarBilling.find({
     customerId: req.params.customer,
+    isDeleted: false
   })
     .sort({ createdAt: -1 })
     .lean();
@@ -209,7 +210,10 @@ export const deleteBarBilling = asyncHandler(async (req, res) => {
     throw new Error("barbilling not found");
   }
 
-  const result = await barbilling.deleteOne();
+  barbilling.isDeleted = true;
+  barbilling.deletedDate = new Date()
+
+  await barbilling.save()
 
   const reply = `deleted`;
 

@@ -10,6 +10,7 @@ import Invoice from "../models/invoiceModel.js";
 import JewelleryOrderEdited from "../models/jewelleryOrderEditedModel.js";
 import JewelleryOrder from "../models/jewelleryOrderModel.js";
 import Process from "../models/processModel.js";
+import Trash from "../models/trashModel.js";
 import User from "../models/userModel.js";
 
 export const createJewelleryOrder = asyncHandler(async (req, res) => {
@@ -146,7 +147,7 @@ export const createJewelleryOrder = asyncHandler(async (req, res) => {
 });
 
 export const getAllJewelleryOrders = asyncHandler(async (req, res) => {
-  const jewelleryOrder = await JewelleryOrder.find({})
+  const jewelleryOrder = await JewelleryOrder.find({isDeleted: false})
     .sort({ createdAt: -1 })
     .lean();
 
@@ -198,7 +199,7 @@ export const cancelJewelleryOrder = asyncHandler(async (req, res) => {
     const orderInProcess = await Process.findOne({ orderId: req.params.id });
     if (orderInProcess) {
       orderInProcess.status = "Cancelled";
-      orderInProcess.save();
+      await orderInProcess.save();
     }
 
     const billing = await Billing.findOne({ orderId: req.params.id });
@@ -320,6 +321,7 @@ export const updateJewelleryOrder = asyncHandler(async (req, res) => {
 
 export const deleteJewelleryOrder = async (req, res) => {
   const { id } = req.params;
+  const userDetails = req.body
 
   // Does the user exist to delete?
   const order = await JewelleryOrder.findById(id).exec();
@@ -332,23 +334,42 @@ export const deleteJewelleryOrder = async (req, res) => {
   const process = await Process.findOne({ orderId: id });
 
   if (process) {
-    await process.deleteOne();
+    process.isDeleted = true;
+    process.deletedDate = new Date()
+
+    await process.save()
   }
 
   const billing = await Billing.findOne({ orderId: id });
 
   if (billing) {
-    await billing.deleteOne();
-    
+    billing.isDeleted = true;
+    billing.deletedDate = new Date()
+
+    await billing.save()
   }
   
 
-  const result = await order.deleteOne();
+  order.isDeleted = true;
+    order.deletedDate = new Date()
+    const success = await order.save()
+    if(success){
+      await Trash.create({
+        user: userDetails.fullName,
+        deletedAt: new Date(),
+        heading: "Jewellery Order",
+        headingId: id,
+        name: order.name
+      })
+    }
 
   if(order.status === "Cancelled"){
     const cancelledTrue = await Cancel.findOne({itemId:id})
    if(cancelledTrue){
-    await cancelledTrue.deleteOne()
+    cancelledTrue.isDeleted = true;
+    cancelledTrue.deletedDate = new Date()
+
+    await cancelledTrue.save()
    }
   }
 
@@ -363,6 +384,7 @@ export const getJewelleryOrderExcel = asyncHandler(async (req, res) => {
   const { from, to, status } = req.query;
 
   const jewelleryOrder = await JewelleryOrder.find({
+    isDeleted: false,
     status: status,
     orderDate: { $gte: from, $lte: to },
   }).exec();

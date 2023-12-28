@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import xlsx from "xlsx";
 import Silver from "../models/silverModel.js";
+import Trash from "../models/trashModel.js";
 
 export const createSilver = asyncHandler(async (req, res) => {
   const {
@@ -63,7 +64,7 @@ export const createSilver = asyncHandler(async (req, res) => {
 });
 
 export const getAllSilver = asyncHandler(async (req, res) => {
-  const silver = await Silver.find({}).sort({ createdAt: -1 }).lean();
+  const silver = await Silver.find({isDeleted: false}).sort({ createdAt: -1 }).lean();
 
   if (silver) {
     res.status(200).json(silver);
@@ -120,15 +121,29 @@ export const updateSilver = asyncHandler(async (req, res) => {
 
 export const deleteSilver = async (req, res) => {
   const { id } = req.params;
+  const userDetails = req.body
 
-  const user = await Silver.findById(id).exec();
+  const silver = await Silver.findById(id).exec();
 
-  if (!user) {
+  if (!silver) {
     res.status(400);
     throw new Error("Silver not found");
   }
 
-  const result = await user.deleteOne();
+  silver.isDeleted = true;
+  silver.deletedDate = new Date()
+
+  const success = await silver.save()
+
+  if(success){
+    await Trash.create({
+      user: userDetails.fullName,
+      deletedAt: new Date(),
+      heading: "Silver",
+      headingId: id,
+      name: silver.name
+    })
+  }
 
   const reply = `deleted`;
 
@@ -136,11 +151,30 @@ export const deleteSilver = async (req, res) => {
 };
 
 export const deleteMultipleSilver = asyncHandler(async (req, res) => {
-  const  ids  = req.body;
+  const  {ids, user}  = req.body;
 
-  const result = await Silver.deleteMany({ _id: { $in: [...ids] } });
+  const userIds = ids.map((item) => item.id);
 
-  if (result.deletedCount > 0) {
+  const result = await Silver.updateMany(
+    { _id: { $in: [...userIds] } },
+    {
+      $set: {
+        isDeleted: true,
+        deletedDate: new Date(),
+      },
+    }
+  );
+
+  if (result.matchedCount > 0) {
+    const trashRecords = ids.map(id => ({
+      user: user.fullName,
+      deletedAt: new Date(),
+      heading: "Silver",
+      headingId: id.id,
+      name: id.name, 
+    }));
+
+    await Trash.insertMany(trashRecords);
     res.json({ message: `${result.deletedCount} Silver deleted successfully` });
   } else {
     res.status(404).json({ message: 'No Silver found with the provided IDs' });
@@ -148,7 +182,7 @@ export const deleteMultipleSilver = asyncHandler(async (req, res) => {
 });
 
 export const getSilverExcel = asyncHandler(async (req, res) => {
-  const silver = await Silver.find({})
+  const silver = await Silver.find({isDeleted: false})
     .sort({ createdAt: -1 })
     .lean();
 

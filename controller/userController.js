@@ -1,4 +1,6 @@
 import asyncHandler from "express-async-handler";
+// import Dispatch from "../models/dispatchModel.js";
+import Trash from "../models/trashModel.js";
 import User from "../models/userModel.js";
 
 export const createUser = asyncHandler(async (req, res) => {
@@ -60,7 +62,7 @@ export const createUser = asyncHandler(async (req, res) => {
 
 export const getAllUsers = asyncHandler(async (req, res) => {
   // const users = await User.find({}).sort({ createdAt: -1 });
-  const users = await User.find({ active: true })
+  const users = await User.find({ isDeleted: false })
     .select("-password")
     .sort({ createdAt: -1 })
     .lean();
@@ -75,7 +77,7 @@ export const getAllUsers = asyncHandler(async (req, res) => {
 
 export const getAllUsersList = asyncHandler(async (req, res) => {
   // const users = await User.find({}).sort({ createdAt: -1 });
-  const users = await User.find({ active: true, role: "user" })
+  const users = await User.find({ isDeleted: false, role: "user" })
     .select("name")
     .sort({ createdAt: -1 })
     .lean();
@@ -86,7 +88,6 @@ export const getAllUsersList = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "No users found" });
   }
 
-  res.json(users);
 });
 
 export const getUserById = asyncHandler(async (req, res) => {
@@ -128,28 +129,62 @@ export const updateUser = asyncHandler(async (req, res) => {
 
 export const deleteUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  const userDetails = req.body
 
   // Does the user exist to delete?
-  const user = await User.findById(id).exec();
+  const user = await User.findById(id);
 
   if (!user) {
     res.status(400);
     throw new Error("User not found");
   }
 
-  const result = await user.deleteOne();
+  user.isDeleted = true;
+  user.deletedDate = new Date()
 
-  const reply = `Username ${result.username} with ID ${result._id} deleted`;
+  const success = await user.save()
+
+  if(success){
+    await Trash.create({
+      user: userDetails.fullName,
+      deletedAt: new Date(),
+      heading: "User",
+      headingId: id,
+      name: user.name
+    })
+  }
+
+  const reply = ` deleted`;
 
   res.json(reply);
 });
 
 export const deleteMultipleUsers = asyncHandler(async (req, res) => {
-  const  ids  = req.body;
+  const  {ids, user}  = req.body;
 
-  const result = await User.deleteMany({ _id: { $in: [...ids] } });
+  const userIds = ids.map((item) => item.id);
 
-  if (result.deletedCount > 0) {
+  const result = await User.updateMany(
+    { _id: { $in: [...userIds] } },
+    {
+      $set: {
+        isDeleted: true,
+        deletedDate: new Date(),
+      },
+    }
+  );
+
+  if (result.matchedCount > 0) {
+    const trashRecords = ids.map(id => ({
+      user: user.fullName,
+      deletedAt: new Date(),
+      heading: "User",
+      headingId: id.id,
+      name: id.name, 
+    }));
+
+    await Trash.insertMany(trashRecords);
+
     res.json({ message: `${result.deletedCount} users deleted successfully` });
   } else {
     res.status(404).json({ message: 'No users found with the provided IDs' });
@@ -172,3 +207,20 @@ export const changePassword = asyncHandler(async (req, res) => {
 
   res.json(reply);
 });
+
+
+// export const addIsDeleted = asyncHandler(async (req, res) => {
+
+//   const result = await Dispatch.updateMany({}, {
+//     $set: {
+//       isDeleted: false
+//     },
+//   });
+
+
+//   if (result.matchedCount > 0) {
+//     res.json({ message: `${result.matchedCount} is Delete added` });
+//   } else {
+//     res.status(404).json({ message: 'No users found in the collection' });
+//   }
+// });

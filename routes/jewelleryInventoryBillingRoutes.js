@@ -22,7 +22,7 @@ router
   .route("/:id")
   .get(getJewelleryInventoryBillingById)
   .put(updateJewelleryInventoryBilling)
-  .delete(deleteJewelleryInventoryBilling);
+  .post(deleteJewelleryInventoryBilling);
 router.route("/:id/customer").get(getJewelleryInventoryBillingByCustomerId);
 
 export default router;
