@@ -9,6 +9,7 @@ import path from "path";
 import { connectDB } from "./config/db.js";
 import { getCustomerList } from "./controller/customerController.js";
 import { getFactoryList } from "./controller/factoryController.js";
+import { deleteAfterThirtyDays } from "./controller/trashController.js";
 import { getAllUsersList } from "./controller/userController.js";
 import errorHandler from "./middleware/errorHandler.js";
 import aryaRoute from "./routes/aryaRoutes.js";
@@ -86,6 +87,7 @@ app.use("/api/v1/currency", currencyRoute);
 app.use("/api/v1/dashboard", dashboardRoute);
 app.use("/api/v1/cancel", cancelRoute);
 app.use("/api/v1/trash", trashRoute);
+app.use("/api/v1/thirtydays", deleteAfterThirtyDays);
 
 const __dirname = path.resolve();
 app.use("/uploads", express.static(path.join(__dirname, "/uploads")));

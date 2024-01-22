@@ -106,8 +106,8 @@ export const createJewelleryOrder = asyncHandler(async (req, res) => {
       message: "successfully created",
     });
     // sending email to admin
-    const emailWeight = orders?.order[0]?.weight ?? 0
-    const emailPaymentType = orders?.order[0]?.paymentType ?? "cash"
+    const emailWeight = orders?.order[0]?.weight ?? 0;
+    const emailPaymentType = orders?.order[0]?.paymentType ?? "cash";
     const adminEmailBody = `New order created for customer ${customerName}.\n\nWith Invoice no. ${invoiceNo}, weight: ${emailWeight} and paymentType: ${emailPaymentType}`;
     const adminEmailSubject = "New Jewellery Order";
 
@@ -147,12 +147,26 @@ export const createJewelleryOrder = asyncHandler(async (req, res) => {
 });
 
 export const getAllJewelleryOrders = asyncHandler(async (req, res) => {
-  const jewelleryOrder = await JewelleryOrder.find({isDeleted: false})
+  const jewelleryOrders = await JewelleryOrder.find({ isDeleted: false })
     .sort({ createdAt: -1 })
     .lean();
+  if (jewelleryOrders) {
+    const customerIds = jewelleryOrders.map((order) => order.customerId);
+    const customers = await Customer.find({
+      _id: { $in: customerIds },
+    }).select("_id fullName");
 
-  if (jewelleryOrder) {
-    res.json(jewelleryOrder);
+    const customerNamesMap = new Map(
+      customers.map(({ _id, fullName }) => [_id, fullName])
+    );
+
+    const updatedJewelleryOrders = jewelleryOrders.map((order) => ({
+      ...order,
+      customerName:
+        customerNamesMap.get(order.customerId) || order.customerName,
+    }));
+
+    res.json(updatedJewelleryOrders);
   } else {
     return res.status(400).json({ message: "No JewelleryOrder found" });
   }
@@ -181,7 +195,7 @@ export const getJewelleryOrderEditedById = asyncHandler(async (req, res) => {
 
 export const cancelJewelleryOrder = asyncHandler(async (req, res) => {
   const jewelleryOrder = await JewelleryOrder.findById(req.params.id);
-  
+
   if (jewelleryOrder) {
     jewelleryOrder.status = "Cancelled";
     jewelleryOrder.save();
@@ -192,9 +206,8 @@ export const cancelJewelleryOrder = asyncHandler(async (req, res) => {
       name: jewelleryOrder.name,
       cancelType: "Jewellery Order",
       amount: jewelleryOrder.estimateAmount,
-      cancelledBy: req.body.fullName
+      cancelledBy: req.body.fullName,
     });
-
 
     const orderInProcess = await Process.findOne({ orderId: req.params.id });
     if (orderInProcess) {
@@ -321,7 +334,7 @@ export const updateJewelleryOrder = asyncHandler(async (req, res) => {
 
 export const deleteJewelleryOrder = async (req, res) => {
   const { id } = req.params;
-  const userDetails = req.body
+  const userDetails = req.body;
 
   // Does the user exist to delete?
   const order = await JewelleryOrder.findById(id).exec();
@@ -335,42 +348,41 @@ export const deleteJewelleryOrder = async (req, res) => {
 
   if (process) {
     process.isDeleted = true;
-    process.deletedDate = new Date()
+    process.deletedDate = new Date();
 
-    await process.save()
+    await process.save();
   }
 
   const billing = await Billing.findOne({ orderId: id });
 
   if (billing) {
     billing.isDeleted = true;
-    billing.deletedDate = new Date()
+    billing.deletedDate = new Date();
 
-    await billing.save()
+    await billing.save();
   }
-  
 
   order.isDeleted = true;
-    order.deletedDate = new Date()
-    const success = await order.save()
-    if(success){
-      await Trash.create({
-        user: userDetails.fullName,
-        deletedAt: new Date(),
-        heading: "Jewellery Order",
-        headingId: id,
-        name: order.name
-      })
+  order.deletedDate = new Date();
+  const success = await order.save();
+  if (success) {
+    await Trash.create({
+      user: userDetails.fullName,
+      deletedAt: new Date(),
+      heading: "Jewellery Order",
+      headingId: id,
+      name: order.name,
+    });
+  }
+
+  if (order.status === "Cancelled") {
+    const cancelledTrue = await Cancel.findOne({ itemId: id });
+    if (cancelledTrue) {
+      cancelledTrue.isDeleted = true;
+      cancelledTrue.deletedDate = new Date();
+
+      await cancelledTrue.save();
     }
-
-  if(order.status === "Cancelled"){
-    const cancelledTrue = await Cancel.findOne({itemId:id})
-   if(cancelledTrue){
-    cancelledTrue.isDeleted = true;
-    cancelledTrue.deletedDate = new Date()
-
-    await cancelledTrue.save()
-   }
   }
 
   const reply = `deleted`;
@@ -378,9 +390,7 @@ export const deleteJewelleryOrder = async (req, res) => {
   res.json(reply);
 };
 
-
 export const getJewelleryOrderExcel = asyncHandler(async (req, res) => {
-
   const { from, to, status } = req.query;
 
   const jewelleryOrder = await JewelleryOrder.find({
@@ -407,8 +417,8 @@ export const getJewelleryOrderExcel = asyncHandler(async (req, res) => {
       estimateAmount: item?.estimateAmount,
       paymentType: item?.paymentType,
       advancePayment: item?.paidAmount,
-      orderDate: item?.orderDate?.slice(0,10),
-      deadlineDate: item?.deadlineDate?.slice(0,10),
+      orderDate: item?.orderDate?.slice(0, 10),
+      deadlineDate: item?.deadlineDate?.slice(0, 10),
       deliveryLocation: item?.deliveryLocation,
       priority: item?.priority,
       remarks: item?.remarks,
