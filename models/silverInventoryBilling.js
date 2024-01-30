@@ -6,6 +6,10 @@ const SilverInventoryBilling = new mongoose.Schema(
       type: String,
       required: true,
     },
+    itemCode: {
+      type: String,
+      default: "",
+    },
     name: {
       type: String,
       required: true,
@@ -68,15 +72,15 @@ const SilverInventoryBilling = new mongoose.Schema(
     },
     paymentType: {
       type: String,
-      default: "Cash"
+      default: "Cash",
     },
     isDeleted: {
       type: Boolean,
-      default: false
+      default: false,
     },
     deletedDate: {
-      type: Date
-    }
+      type: Date,
+    },
   },
   {
     timestamps: true,

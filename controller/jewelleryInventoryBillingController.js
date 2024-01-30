@@ -120,7 +120,7 @@ export const createJewelleryOrderBilling = asyncHandler(async (req, res) => {
 
 export const getAllJewelleryInventoryBilling = asyncHandler(
   async (req, res) => {
-    const inventory = await JewelleryInventoryBilling.find({isDeleted: false})
+    const inventory = await JewelleryInventoryBilling.find({ isDeleted: false })
       .sort({ createdAt: -1 })
       .lean();
 
@@ -149,7 +149,7 @@ export const getJewelleryInventoryBillingByCustomerId = asyncHandler(
   async (req, res) => {
     const inventory = await JewelleryInventoryBilling.find({
       customerId: req.params.id,
-      isDeleted: false
+      isDeleted: false,
     })
       .sort({ createdAt: -1 })
       .lean();
@@ -192,7 +192,7 @@ export const updateJewelleryInventoryBilling = asyncHandler(
 
 export const deleteJewelleryInventoryBilling = async (req, res) => {
   const { id } = req.params;
-  const userDetails = req.body
+  const userDetails = req.body;
 
   const inventory = await JewelleryInventoryBilling.findById(id).exec();
 
@@ -202,18 +202,18 @@ export const deleteJewelleryInventoryBilling = async (req, res) => {
   }
 
   inventory.isDeleted = true;
-  inventory.deletedDate = new Date()
+  inventory.deletedDate = new Date();
 
-  const success = await inventory.save()
+  const success = await inventory.save();
 
-  if(success){
+  if (success) {
     await Trash.create({
       user: userDetails.fullName,
       deletedAt: new Date(),
       heading: "JewelleryInventory Billing",
       headingId: id,
-      name: inventory.name
-    })
+      name: inventory.name,
+    });
   }
 
   const reply = `deleted`;
@@ -221,17 +221,35 @@ export const deleteJewelleryInventoryBilling = async (req, res) => {
   res.json(reply);
 };
 
-export const  updatePaymentType = async () =>  {
+export const updatePaymentType = async () => {
   try {
     // Update all documents that don't have the paymentType field already set
     const result = await JewelleryInventoryBilling.updateMany(
       { paymentType: { $exists: false } },
-      { $set: { paymentType: 'Cash' } }
+      { $set: { paymentType: "Cash" } }
     );
 
     // Log the number of documents updated
     console.log(`${result.nModified} documents updated successfully.`);
   } catch (error) {
-    console.error('Error updating documents:', error);
+    console.error("Error updating documents:", error);
   }
-}
+};
+
+// adding code to jewellery inventory billing
+export const addCodeInInventoryBilling = async (req, res) => {
+  const inventory = await JewelleryInventoryBilling.find({ isDeleted: false });
+
+  for (const inventoryData of inventory) {
+    const jewelleryOrderId = inventoryData.jewelleryOrderId;
+    const jewelleryInventory = await JewelleryInventory.findById(
+      jewelleryOrderId
+    );
+
+    if (jewelleryInventory) {
+      inventoryData.code = jewelleryInventory.code;
+      await inventoryData.save();
+    }
+  }
+  res.json({ message: "Code added to JewelleryInventoryBilling data" });
+};

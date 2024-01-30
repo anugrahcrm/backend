@@ -118,7 +118,7 @@ export const createSilverBilling = asyncHandler(async (req, res) => {
 });
 
 export const getAllSilverInventoryBilling = asyncHandler(async (req, res) => {
-  const inventory = await SilverInventoryBilling.find({isDeleted: false})
+  const inventory = await SilverInventoryBilling.find({ isDeleted: false })
     .sort({ createdAt: -1 })
     .lean();
 
@@ -143,7 +143,7 @@ export const getSilverInventoryBillingByCustomerId = asyncHandler(
   async (req, res) => {
     const inventory = await SilverInventoryBilling.find({
       customerId: req.params.id,
-      isDeleted: false
+      isDeleted: false,
     })
       .sort({ createdAt: -1 })
       .lean();
@@ -184,7 +184,7 @@ export const updateSilverInventoryBilling = asyncHandler(async (req, res) => {
 
 export const deleteSilverBilling = async (req, res) => {
   const { id } = req.params;
-  const userDetails = req.body
+  const userDetails = req.body;
 
   const inventory = await SilverInventoryBilling.findById(id).exec();
 
@@ -194,21 +194,37 @@ export const deleteSilverBilling = async (req, res) => {
   }
 
   inventory.isDeleted = true;
-  inventory.deletedDate = new Date()
+  inventory.deletedDate = new Date();
 
-  const success =  await inventory.save()
+  const success = await inventory.save();
 
-  if(success){
+  if (success) {
     await Trash.create({
       user: userDetails.fullName,
       deletedAt: new Date(),
       heading: "SilverInventory Billing",
       headingId: id,
-      name: inventory.name
-    })
+      name: inventory.name,
+    });
   }
 
   const reply = `deleted`;
 
   res.json(reply);
+};
+
+// adding code to jewellery inventory billing
+export const addCodeInInventoryBilling = async (req, res) => {
+  const inventory = await SilverInventoryBilling.find({ isDeleted: false });
+
+  for (const inventoryData of inventory) {
+    const jewelleryOrderId = inventoryData.silverId;
+    const jewelleryInventory = await Silver.findById(jewelleryOrderId);
+
+    if (jewelleryInventory) {
+      inventoryData.itemCode = jewelleryInventory.itemCode;
+      await inventoryData.save();
+    }
+  }
+  res.json({ message: "Code added to JewelleryInventoryBilling data" });
 };
