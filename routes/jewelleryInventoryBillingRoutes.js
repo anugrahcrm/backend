@@ -8,7 +8,7 @@ import {
   updateJewelleryInventoryBilling,
 } from "../controller/jewelleryInventoryBillingController.js";
 
-// import { protect } from "../middleware/authMiddleware.js";
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
