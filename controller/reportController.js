@@ -14,7 +14,7 @@ export const getJewelleryInventoryReport = asyncHandler(async (req, res) => {
       $gte: new Date(from),
       $lte: new Date(to),
     },
-    isDeleted: false
+    isDeleted: false,
   });
 
   if (report) {
@@ -31,11 +31,12 @@ export const getJewelleryInventoryExcel = asyncHandler(async (req, res) => {
       $gte: new Date(from),
       $lte: new Date(to),
     },
-    isDeleted: false
+    isDeleted: false,
   });
 
   if (report.length > 0) {
     const transformedData = report.map((item) => ({
+      Date: item?.createdAt?.toString()?.slice(0, 15),
       Invoice: item?.invoice,
       ItemName: item?.name,
       customerName: item?.customerName,
@@ -72,7 +73,7 @@ export const getWatchInventoryReport = asyncHandler(async (req, res) => {
       $gte: new Date(from),
       $lte: new Date(to),
     },
-    isDeleted: false
+    isDeleted: false,
   });
 
   if (report) {
@@ -89,11 +90,12 @@ export const getWatchExcel = asyncHandler(async (req, res) => {
       $gte: new Date(from),
       $lte: new Date(to),
     },
-    isDeleted: false
+    isDeleted: false,
   });
 
   if (report.length > 0) {
     const transformedData = report.map((item) => ({
+      Date: item?.createdAt?.toString()?.slice(0, 15),
       Invoice: item?.invoice,
       ItemName: item?.name,
       modelNo: item?.modelNo,
@@ -125,7 +127,7 @@ export const getSilverInventoryReport = asyncHandler(async (req, res) => {
       $gte: new Date(from),
       $lte: new Date(to),
     },
-    isDeleted: false
+    isDeleted: false,
   });
 
   if (report) {
@@ -142,11 +144,12 @@ export const getSilverExcel = asyncHandler(async (req, res) => {
       $gte: new Date(from),
       $lte: new Date(to),
     },
-    isDeleted: false
+    isDeleted: false,
   });
 
   if (report.length > 0) {
     const transformedData = report.map((item) => ({
+      Date: item?.createdAt?.toString()?.slice(0, 15),
       Invoice: item?.invoice,
       ItemName: item?.name,
       weight: item?.weight,
@@ -181,7 +184,7 @@ export const getJewelleryOrderInventoryReport = asyncHandler(
         $gte: new Date(from),
         $lte: new Date(to),
       },
-      isDeleted: false
+      isDeleted: false,
     });
 
     if (report) {
@@ -199,7 +202,7 @@ export const getJewelleryOrderExcel = asyncHandler(async (req, res) => {
       $gte: new Date(from),
       $lte: new Date(to),
     },
-    isDeleted: false
+    isDeleted: false,
   });
 
   let reportWithCustomer = [];
@@ -220,6 +223,7 @@ export const getJewelleryOrderExcel = asyncHandler(async (req, res) => {
 
   if (reportWithCustomer.length > 0) {
     const transformedData = reportWithCustomer.map((item) => ({
+      Date: item?.createdAt?.toString()?.slice(0, 15),
       Invoice: item?.invoice,
       ItemName: item?.name,
       Customer: item?.customerName,
@@ -259,7 +263,7 @@ export const getBarOrderInventoryReport = asyncHandler(async (req, res) => {
       $gte: new Date(from),
       $lte: new Date(to),
     },
-    isDeleted: false
+    isDeleted: false,
   });
 
   if (report) {
@@ -276,7 +280,7 @@ export const getBarOrderExcel = asyncHandler(async (req, res) => {
       $gte: new Date(from),
       $lte: new Date(to),
     },
-    isDeleted: false
+    isDeleted: false,
   });
 
   let reportWithCustomer = [];
@@ -297,6 +301,7 @@ export const getBarOrderExcel = asyncHandler(async (req, res) => {
 
   if (reportWithCustomer.length > 0) {
     const transformedData = reportWithCustomer.map((item) => ({
+      Date: item?.createdAt?.toString()?.slice(0, 15),
       Invoice: item?.invoice,
       ItemName: item?.name,
       customerName: item?.customerName,
