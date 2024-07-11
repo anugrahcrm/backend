@@ -1,7 +1,6 @@
 import express from "express";
 import multer from "multer";
 import path from "path";
-import sharp from "sharp";
 
 const router = express.Router();
 
@@ -48,7 +47,7 @@ router.post("/", upload.single("image"), async (req, res) => {
 
   try {
     // Resize the image using sharp module
-    await sharp(filePath).resize({ width: 600 }).toFile(resizedFilePath);
+    // await sharp(filePath).resize({ width: 600 }).toFile(resizedFilePath);
 
     res.send(`/${resizedFilePath}`);
   } catch (error) {
